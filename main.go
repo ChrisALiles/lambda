@@ -1,5 +1,9 @@
-// Dabbling in lambda calculus, based mainly on David Beazley's PYCON 2019 tutorial
+// Dabbling in lambda calculus, based initially on David Beazley's PYCON 2019 tutorial
 // "Lambda Calculus from the Ground Up" (YouTube video).
+// This was then followed up by a study of 4 YouTube videos :
+//      CSE 340 S16: 4-15-16 "Lambda Calculus Pt.1" and parts 2, 3 and 4.
+//      Adam Doupe - Arizona State University
+// These clarified a lot for me.
 package main
 
 import (
@@ -58,66 +62,85 @@ func lambdaOr(x func(any) func(any) any) any {
 
 // Example 4 - the integers.
 
-// The incr and lambdaIncr functions are just helpers, not part of the LC.
+// The incr function is just a helper, not part of the LC.
 func incr(x int) int {
 	return x + 1
 }
 
-func lambdaIncr(x any) any {
-	xa := x.(int)
-	return xa + 1
+// The commented out functions were based on the Python Beazley code.
+
+//func lambdaIncr(x any) any {
+//	xa := x.(int)
+//	return xa + 1
+//}
+
+//func lambdaOne(f func(int) int) func(int) int {
+//	return func(x int) int {
+//		return f(x)
+//	}
+//}
+
+//func lambdaTwo(f func(int) int) func(int) int {
+//	return func(x int) int {
+//		return f(f(x))
+//	}
+//}
+
+//func lambdaTwoAny(f func(any) any) func(any) any {
+//	return func(x any) any {
+//		return f(f(x))
+//	}
+//}
+
+//func lambdaThree(f func(int) int) func(int) int {
+//	return func(x int) int {
+//		return f(f(f(x)))
+//	}
+//}
+
+//func lambdaThreeAny(f func(any) any) func(any) any {
+//	return func(x any) any {
+//		return f(f(f(x)))
+//	}
+//}
+
+//func lambdaZero(f func(int) int) func(int) int {
+//	return func(x int) int {
+//		return x
+//	}
+//}
+
+//Zero ƛf.ƛx.x
+//One  ƛf.ƛx.fx
+//Two  ƛf.ƛx.ffx
+
+func lambdaOne(f func(int) int, x int) int {
+	return f(x)
 }
 
-func lambdaOne(f func(int) int) func(int) int {
-	return func(x int) int {
-		return f(x)
-	}
+func lambdaTwo(f func(int) int, x int) int {
+	return f(f(x))
 }
 
-func lambdaTwo(f func(int) int) func(int) int {
-	return func(x int) int {
-		return f(f(x))
-	}
+func lambdaThree(f func(int) int, x int) int {
+	return f(f(f(x)))
 }
 
-func lambdaTwoAny(f func(any) any) func(any) any {
-	return func(x any) any {
-		return f(f(x))
-	}
-}
-
-func lambdaThree(f func(int) int) func(int) int {
-	return func(x int) int {
-		return f(f(f(x)))
-	}
-}
-
-func lambdaThreeAny(f func(any) any) func(any) any {
-	return func(x any) any {
-		return f(f(f(x)))
-	}
-}
-
-func lambdaZero(f func(int) int) func(int) int {
-	return func(x int) int {
-		return x
-	}
+func lambdaZero(f func(int) int, x int) int {
+	return x
 }
 
 // Example 5 - arithmetic
 
-// Python: SUCC = lambda n:(lambda f:lambda x: f(n(f)(x)))
-// Successor function.
-// It took me 2 weeks to come up with this, and it's a long way
-// from being good.
-func lambdaSucr(twoF func(z func(any) any) func(any) any) any {
-	return lambdaIncr(twoF(lambdaIncr)(0))
+//Successor ƛn.ƛf.ƛx.f(nfx)
+func lambdaSucc(cn func(func(int) int, int) int,
+	f func(int) int,
+	x int) func(func(int) int, int) int {
+	return func(func(int) int, int) int {
+		return f(cn(f, x))
+	}
 }
 
-//
-// Python
-// Add     lambda x:lambda y:y(SUCC)(x)
-// Mutiply lambda x:lambda y:lambda f:y(x(f))
 func main() {
 	// Example 1
 	fmt.Println("Left", left("5V")("GRND"))
@@ -178,15 +201,12 @@ func main() {
 	fmt.Println("Or false false", xc("arg1")("arg2"))
 
 	// Example 4
-	fmt.Println("One", lambdaOne(incr)(0))
-	fmt.Println("Two", lambdaTwo(incr)(0))
-	fmt.Println("Two any", lambdaTwoAny(lambdaIncr)(0))
-	fmt.Println("Two any variation", lambdaIncr(lambdaTwoAny(lambdaIncr)(0)))
-	fmt.Println("Three", lambdaThree(incr)(0))
-	fmt.Println("Zero", lambdaZero(incr)(0))
+	fmt.Println("One", lambdaOne(incr, 0))
+	fmt.Println("Two", lambdaTwo(incr, 0))
+	fmt.Println("Three", lambdaThree(incr, 0))
+	fmt.Println("Zero", lambdaZero(incr, 0))
 
 	// Example 5
-	fmt.Println("lambdaSucr 2", lambdaSucr(lambdaTwoAny))
-	fmt.Println("lambdaSucr 3", lambdaSucr(lambdaThreeAny))
-	//fmt.Println("sucr sucr", lambdaSucr(lambdaSucr(lambdaThreeAny)))
+	newCN := lambdaSucc(lambdaOne, incr, 0)
+	fmt.Println("successor of 1", newCN(incr, 0))
 }
