@@ -109,6 +109,7 @@ func incr(x int) int {
 //		return x
 //	}
 //}
+// These functions were written after I took Adam Doupe's course.
 
 //Zero ƛf.ƛx.x
 //One  ƛf.ƛx.fx
@@ -130,7 +131,7 @@ func lambdaZero(f func(int) int, x int) int {
 	return x
 }
 
-// Example 5 - arithmetic
+// Example 5
 
 //Successor ƛn.ƛf.ƛx.f(nfx)
 func lambdaSucc(cn func(func(int) int, int) int,
@@ -139,6 +140,27 @@ func lambdaSucc(cn func(func(int) int, int) int,
 	return func(func(int) int, int) int {
 		return f(cn(f, x))
 	}
+}
+
+// T ƛx.ƛy.x
+// F ƛx.ƛy.y
+// AND ƛa.ƛb.abF
+// NOT ƛa.aFT
+
+func lambdaT(x, y any) any {
+	return x
+}
+
+func lambdaF(x, y any) any {
+	return y
+}
+
+func lambdaNOT(x func(a, b any) any) any {
+	return x(lambdaF, lambdaT)
+}
+
+func lambdaAND(x, y func(a, b any) any) any {
+	return x(y, lambdaF)
 }
 
 func main() {
@@ -209,4 +231,26 @@ func main() {
 	// Example 5
 	newCN := lambdaSucc(lambdaOne, incr, 0)
 	fmt.Println("successor of 1", newCN(incr, 0))
+	newCN = lambdaSucc(lambdaThree, incr, 0)
+	fmt.Println("successor of 3", newCN(incr, 0))
+	fmt.Println("T", lambdaT(true, false))
+	fmt.Println("F", lambdaF(true, false))
+	notRes := lambdaNOT(lambdaT)
+	notResA := notRes.(func(a, b any) any)
+	fmt.Println("Not T", notResA(true, false))
+	notRes = lambdaNOT(lambdaF)
+	notResA = notRes.(func(a, b any) any)
+	fmt.Println("Not F", notResA(true, false))
+	andRes := lambdaAND(lambdaT, lambdaF)
+	andResA := andRes.(func(a, b any) any)
+	fmt.Println("And T F", andResA(true, false))
+	andRes = lambdaAND(lambdaT, lambdaT)
+	andResA = andRes.(func(a, b any) any)
+	fmt.Println("And T T", andResA(true, false))
+	andRes = lambdaAND(lambdaF, lambdaT)
+	andResA = andRes.(func(a, b any) any)
+	fmt.Println("And F T", andResA(true, false))
+	andRes = lambdaAND(lambdaF, lambdaF)
+	andResA = andRes.(func(a, b any) any)
+	fmt.Println("And F F", andResA(true, false))
 }
