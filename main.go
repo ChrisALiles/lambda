@@ -60,7 +60,7 @@ func lambdaOr(x func(any) func(any) any) any {
 	}
 }
 
-// Example 4 - the integers.
+// Example 4 - the anyegers.
 
 // The incr function is just a helper, not part of the LC.
 func incr(x int) int {
@@ -70,18 +70,18 @@ func incr(x int) int {
 // The commented out functions were based on the Python Beazley code.
 
 //func lambdaIncr(x any) any {
-//	xa := x.(int)
+//	xa := x.(any)
 //	return xa + 1
 //}
 
-//func lambdaOne(f func(int) int) func(int) int {
-//	return func(x int) int {
+//func lambdaOne(f func(any) any) func(any) any {
+//	return func(x any) any {
 //		return f(x)
 //	}
 //}
 
-//func lambdaTwo(f func(int) int) func(int) int {
-//	return func(x int) int {
+//func lambdaTwo(f func(any) any) func(any) any {
+//	return func(x any) any {
 //		return f(f(x))
 //	}
 //}
@@ -92,8 +92,8 @@ func incr(x int) int {
 //	}
 //}
 
-//func lambdaThree(f func(int) int) func(int) int {
-//	return func(x int) int {
+//func lambdaThree(f func(any) any) func(any) any {
+//	return func(x any) any {
 //		return f(f(f(x)))
 //	}
 //}
@@ -104,8 +104,8 @@ func incr(x int) int {
 //	}
 //}
 
-//func lambdaZero(f func(int) int) func(int) int {
-//	return func(x int) int {
+//func lambdaZero(f func(any) any) func(any) any {
+//	return func(x any) any {
 //		return x
 //	}
 //}
@@ -128,6 +128,22 @@ func lambdaThree(f func(int) int, x int) int {
 }
 
 func lambdaZero(f func(int) int, x int) int {
+	return x
+}
+
+func lambdaOneA(f func(any) any, x any) any {
+	return f(x)
+}
+
+func lambdaTwoA(f func(any) any, x any) any {
+	return f(f(x))
+}
+
+func lambdaThreeA(f func(any) any, x any) any {
+	return f(f(f(x)))
+}
+
+func lambdaZeroA(f func(any) any, x any) any {
 	return x
 }
 
@@ -163,6 +179,16 @@ func lambdaAND(x, y func(a, b any) any) any {
 	return x(y, lambdaF)
 }
 
+// iszero
+
+func lambdaRF(any) any {
+	return lambdaF
+}
+
+func lambdaISZERO(x func(func(any) any, any) any) any {
+	return x(lambdaRF, lambdaT)
+}
+
 func main() {
 	// Example 1
 	fmt.Println("Left", left("5V")("GRND"))
@@ -173,10 +199,10 @@ func main() {
 	fmt.Println("False", lambdaFalse("true")("false"))
 
 	// Example 3
-	x := lambdaNot(lambdaTrue)                   // Returns dynamic type = function, static type = interface.
-	xc := x.(func(a any) func(b any) any)        // Type assertion to convert interface to function.
-	y := lambdaNot(lambdaFalse)                  // Returns dynamic type = function, static type = interface.
-	yc := y.(func(a any) func(b any) any)        // Type assertion to convert interface to function.
+	x := lambdaNot(lambdaTrue)                   // Returns dynamic type = function, static type = anyerface.
+	xc := x.(func(a any) func(b any) any)        // Type assertion to convert anyerface to function.
+	y := lambdaNot(lambdaFalse)                  // Returns dynamic type = function, static type = anyerface.
+	yc := y.(func(a any) func(b any) any)        // Type assertion to convert anyerface to function.
 	fmt.Println("Not true", xc("arg1")("arg2"))  // Call the functions
 	fmt.Println("Not false", yc("arg1")("arg2")) //   to observe their effects.
 
@@ -253,4 +279,19 @@ func main() {
 	andRes = lambdaAND(lambdaF, lambdaF)
 	andResA = andRes.(func(a, b any) any)
 	fmt.Println("And F F", andResA(true, false))
+	rfRes := lambdaRF(lambdaT)
+	rfResA := rfRes.(func(x, y any) any)
+	fmt.Println("RF", rfResA(true, false))
+	izRes := lambdaISZERO(lambdaOneA)
+	izResA := izRes.(func(x, y any) any)
+	fmt.Println("IZ one", izResA(true, false))
+	izRes = lambdaISZERO(lambdaZeroA)
+	izResA = izRes.(func(x, y any) any)
+	fmt.Println("IZ zero", izResA(true, false))
+	izRes = lambdaISZERO(lambdaTwoA)
+	izResA = izRes.(func(x, y any) any)
+	fmt.Println("IZ two", izResA(true, false))
+	izRes = lambdaISZERO(lambdaThreeA)
+	izResA = izRes.(func(x, y any) any)
+	fmt.Println("IZ three", izResA(true, false))
 }
